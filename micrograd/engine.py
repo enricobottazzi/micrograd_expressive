@@ -1,3 +1,4 @@
+import math
 
 class Value:
     """ stores a single scalar value and its gradient """
@@ -47,6 +48,36 @@ class Value:
 
         def _backward():
             self.grad += (out.data > 0) * out.grad
+        out._backward = _backward
+
+        return out
+
+    def exp(self):
+        out = Value(math.exp(self.data), (self,), 'exp')
+
+        def _backward():
+            self.grad += out.data * out.grad
+        out._backward = _backward
+
+        return out
+
+    def log(self):
+        out = Value(math.log(self.data), (self,), 'log')
+
+        def _backward():
+            self.grad += (1 / self.data) * out.grad
+        out._backward = _backward
+
+        return out
+
+    def sigmoid(self):
+        # numerically stable: never exponentiates a positive number
+        t = math.exp(-abs(self.data))
+        s = 1 / (1 + t) if self.data >= 0 else t / (1 + t)
+        out = Value(s, (self,), 'sigmoid')
+
+        def _backward():
+            self.grad += s * (1 - s) * out.grad
         out._backward = _backward
 
         return out

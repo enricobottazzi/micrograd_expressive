@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from micrograd.engine import Value
 
 def loss(model, X, y, batch_size=None):
@@ -12,3 +13,13 @@ def loss(model, X, y, batch_size=None):
     scores = list(map(model, inputs))
     losses = [(si - yi)**2 for si, yi in zip(scores, yb.flatten())]
     return sum(losses) * (1.0 / len(losses))
+
+def plot(X, y, path='plot.png'):
+    plt.figure()
+    plt.scatter(np.asarray(X).ravel(), np.asarray(y).ravel(), s=5)
+    plt.xlim(-10, 10)
+    plt.ylim(-15, 30)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.savefig(path)
+    plt.close()

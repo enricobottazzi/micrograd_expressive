@@ -193,6 +193,9 @@ class NeuronSoftExp(Neuron):
     def parameters(self):
         return super().parameters() + [self.alpha]
 
+class NeuronLinear(Neuron):
+    __call__ = Neuron._lin
+
 class Layer(Module):
 
     def __init__(self, nin, nout, neuron):

@@ -1,0 +1,9 @@
+# tests
+pytest
+torch
+
+# demos / notebooks
+numpy
+matplotlib
+scikit-learn
+graphviz

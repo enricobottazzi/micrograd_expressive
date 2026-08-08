@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from micrograd.engine import Value
-from micrograd.nn import Neuron, Layer, MLP
+from micrograd.nn import NeuronReLU, NeuronPReLU, Layer, MLP
 from micrograd.utils import loss, plot
 
 def test_fit_relu():
@@ -23,7 +23,7 @@ def test_fit_relu():
     plot(X_train, y_train, 'relu_target.png')
     
     # initialize a model (single neuron)
-    model = Neuron(1)
+    model = NeuronReLU(1)
     print(model)
     print("number of parameters", len(model.parameters()))
 
@@ -70,7 +70,7 @@ def test_fit_leaky_relu():
     plot(X_train, y_train, 'leaky_relu_target.png')
 
     # initialize a model (single neuron)
-    model = Neuron(1)
+    model = NeuronReLU(1)
     print(model)
     print("number of parameters", len(model.parameters()))
 
@@ -100,27 +100,6 @@ def test_fit_leaky_relu():
     plot(X_train, preds, 'leaky_relu_preds.png')
 
 
-# PReLU(x) = max(0,x) + α·min(0,x)
-class NeuronWithPReLU(Neuron):
-    def __init__(self, nin, nonlin=True):
-        self.w = [Value(random.uniform(-1,1)) for _ in range(nin)]
-        self.b = Value(0)
-        self.alpha = Value(0.01)  # learnable negative slope
-        self.nonlin = nonlin
-
-    def __call__(self, x):
-        act = sum((wi*xi for wi,xi in zip(self.w, x)), self.b)
-        if not self.nonlin:
-            return act
-        return act.relu() + self.alpha * (act - act.relu())
-
-    def parameters(self):
-        return self.w + [self.b, self.alpha]
-
-    def __repr__(self):
-        return f"{'PReLU' if self.nonlin else 'Linear'}Neuron({len(self.w)})"
-
-
 def test_fit_relu_with_prelu():
     np.random.seed(1337)
     random.seed(1337)
@@ -135,7 +114,7 @@ def test_fit_relu_with_prelu():
 
     plot(X_train, y_train, 'relu_with_p_relu_target.png')
 
-    model = NeuronWithPReLU(1)
+    model = NeuronPReLU(1)
     print(model)
     print("number of parameters", len(model.parameters()))
 
@@ -173,7 +152,7 @@ def test_fit_leaky_relu_with_prelu():
 
     plot(X_train, y_train, 'leaky_relu_with_p_relu_target.png')
 
-    model = NeuronWithPReLU(1)
+    model = NeuronPReLU(1)
     print(model)
     print("number of parameters", len(model.parameters()))
 

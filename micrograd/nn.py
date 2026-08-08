@@ -10,27 +10,45 @@ class Module:
     def parameters(self):
         return []
 
-class Neuron(Module):
+# ReLU(x) = max(0,x)
+class NeuronReLU(Module):
 
-    def __init__(self, nin, nonlin=True):
+    def __init__(self, nin):
         self.w = [Value(random.uniform(-1,1)) for _ in range(nin)]
         self.b = Value(0)
-        self.nonlin = nonlin
 
     def __call__(self, x):
         act = sum((wi*xi for wi,xi in zip(self.w, x)), self.b)
-        return act.relu() if self.nonlin else act
+        return act.relu()
 
     def parameters(self):
         return self.w + [self.b]
 
     def __repr__(self):
-        return f"{'ReLU' if self.nonlin else 'Linear'}Neuron({len(self.w)})"
+        return f"ReLUNeuron({len(self.w)})"
+
+# PReLU(x) = max(0,x) + α·min(0,x)
+class NeuronPReLU(Module):
+
+    def __init__(self, nin):
+        self.w = [Value(random.uniform(-1,1)) for _ in range(nin)]
+        self.b = Value(0)
+        self.alpha = Value(0.01)  # learnable negative slope
+
+    def __call__(self, x):
+        act = sum((wi*xi for wi,xi in zip(self.w, x)), self.b)
+        return act.relu() + self.alpha * (act - act.relu())
+
+    def parameters(self):
+        return self.w + [self.b, self.alpha]
+
+    def __repr__(self):
+        return f"PReLUNeuron({len(self.w)})"
 
 class Layer(Module):
 
-    def __init__(self, nin, nout, **kwargs):
-        self.neurons = [Neuron(nin, **kwargs) for _ in range(nout)]
+    def __init__(self, nin, nout, neuron):
+        self.neurons = [neuron(nin) for _ in range(nout)]
 
     def __call__(self, x):
         out = [n(x) for n in self.neurons]
@@ -44,9 +62,9 @@ class Layer(Module):
 
 class MLP(Module):
 
-    def __init__(self, nin, nouts):
+    def __init__(self, nin, nouts, neuron):
         sz = [nin] + nouts
-        self.layers = [Layer(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
+        self.layers = [Layer(sz[i], sz[i+1], neuron) for i in range(len(nouts))]
 
     def __call__(self, x):
         for layer in self.layers:
